@@ -1,0 +1,7 @@
+{
+    "python.pythonPath": "/home/giles/.local/share/virtualenvs/minecraft-control-J__lvGCQ/bin/python",
+    "python.linting.flake8Enabled": true,
+    "python.linting.pylintEnabled": false,
+    "python.linting.mypyEnabled": false,
+    "python.linting.enabled": true
+}

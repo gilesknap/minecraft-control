@@ -4,9 +4,12 @@ from pystemd.systemd1 import Unit, Manager
 from elevate import elevate
 
 
+elevate(graphical=False) # need sudo for systemd actions
+
+
 class McUnit:
     """
-    A classs to represent a Unit of the minecraft service.
+    A class to represent a Unit of the minecraft service.
     The factory function discover_units expects to find installations of
     Minecraft Server in folders under /opt/minecraft and returns a list
     of McUnit
@@ -14,14 +17,16 @@ class McUnit:
 
     mc_root = Path("/opt/minecraft")
     unit_name_format = "minecraft@{}.service"
-    systemd_enabled_format = "/etc/systemd/system/multi-user.target.wants/{}"
     repr_format = "{:2s}  {:40s}{:15s}{:15s}{}"
     heading = repr_format.format("No", "Name", "State", "SubState", "Auto Start")
 
-    def __init__(self, name, unit, path):
+    manager = Manager()
+    manager.load()
+
+    def __init__(self, name, unit, unit_name):
         self.name = name
         self.unit = unit
-        self.path = path
+        self.unit_name = unit_name
 
     @classmethod
     def discover_units(cls):
@@ -37,15 +42,14 @@ class McUnit:
             unit_name = cls.unit_name_format.format(mc_name)
             unit = Unit(unit_name.encode("utf8"))
             unit.load()
-            path = Path(cls.systemd_enabled_format.format(unit_name))
-            units.append(McUnit(mc_name, unit, path))
+            units.append(McUnit(mc_name, unit, unit_name))
 
         return units
 
     def print_str(self, i):
         state = self.unit.Unit.ActiveState.decode("utf8")
         sub_state = self.unit.Unit.SubState.decode("utf8")
-        enabled = self.path.exists()
+        enabled = self.manager.Manager.GetUnitFileState(self.unit_name).decode()
         return self.repr_format.format(str(i), self.name, state, sub_state, enabled)
 
     def start(self):
@@ -57,10 +61,10 @@ class McUnit:
         self.unit.Stop(b"replace")
 
     def enable(self):
-        pass
+        self.manager.Manager.EnableUnitFiles([self.unit_name], False, False)
 
     def disable(self):
-        pass
+        self.manager.Manager.DisableUnitFiles([self.unit_name], False)
 
     actions = {"s": start, "k": stop, "e": enable, "d": disable}
 
@@ -102,17 +106,6 @@ def choose_action():
             return McUnit.actions[response]
         else:
             print("invalid entry")
-
-
-elevate(graphical=False)
-
-manager = Manager()
-manager.load()
-man_units = manager.Manager.ListUnitFiles()
-for name, enabled in man_units:
-    str_name = name.decode()
-    if "minecraft" in str_name:
-        print(str_name, enabled)
 
 
 # main loop. Print status and request actions
