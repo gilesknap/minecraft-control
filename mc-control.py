@@ -1,21 +1,41 @@
 import sys
 from pathlib import Path
-from pystemd.systemd1 import Unit
+from pystemd.systemd1 import Unit, Manager
 from elevate import elevate
 
-systemd_enabled_format = '/etc/systemd/system/multi-user.target.wants/' \
-    'minecraft@{}.service'
-unit_format = 'minecraft@{}.service'
-mc_root = Path('/opt/minecraft')
-mc_installs = list(mc_root.glob('*'))
-mc_names = [
-    str(mc.name) for mc in mc_installs if not str(mc.name).startswith('.')
-]
-mc_units = {}
-mc_paths = {}
+
+class McUnit:
+    mc_root = Path('/opt/minecraft')
+    unit_name_format = 'minecraft@{}.service'
+    systemd_enabled_format = '/etc/systemd/system/multi-user.target.wants/{}'
+
+    def __init__(self, name, unit, path):
+        self.name = name
+        self.unit = unit
+        self.path = path
+
+    @classmethod
+    def discover_units(cls):
+        # factory function that queries systemd files and returns a dictionary
+        # of McUints (1 systemd unit per Minecraft installation)
+        mc_installs = list(cls.mc_root.glob('*'))
+        mc_names = [
+            str(mc.name) for mc in mc_installs if
+            not str(mc.name).startswith('.')
+        ]
+
+        units = {}
+        for i, mc_name in enumerate(mc_names):
+            unit_name = cls.unit_name_format.format(mc_name)
+            unit = Unit(unit_name.encode("utf8"))
+            unit.load()
+            path = Path(cls.systemd_enabled_format.format(unit_name))
+            units[i] = McUnit(mc_name, unit, path)
+
+        return units
 
 
-def start(name):
+def start(unit):
     print(f"Starting {name} ...")
     mc_units[name].Start(b'replace')
 
@@ -41,11 +61,7 @@ actions = {
 }
 
 
-for mc in mc_names:
-    unit_name = unit_format.format(mc)
-    mc_units[mc] = Unit(unit_name.encode("utf8"))
-    mc_units[mc].load()
-    mc_paths[mc] = Path(systemd_enabled_format.format(mc))
+mc_units = McUnit.discover_units()
 
 
 def show_state():
@@ -53,11 +69,11 @@ def show_state():
     print("No. {:40s}{:15s}{:15s}{}".format(
         "Name", "State", "SubState", "Auto Start"
     ))
-    for i, mc in enumerate(mc_names):
-        state = mc_units[mc].Unit.ActiveState.decode("utf8")
-        sub_state = mc_units[mc].Unit.SubState.decode("utf8")
-        enabled = mc_paths[mc].exists()
-        print(f"{i:2d}  {mc:40s}{state:15s}{sub_state:15s}{enabled}")
+    for i, mc in enumerate(mc_units.values()):
+        state = mc.unit.Unit.ActiveState.decode("utf8")
+        sub_state = mc.unit.Unit.SubState.decode("utf8")
+        enabled = mc.path.exists()
+        print(f"{i:2d}  {mc.name:40s}{state:15s}{sub_state:15s}{enabled}")
 
 
 def choose_server():
@@ -67,12 +83,12 @@ def choose_server():
         if not response:
             break
         elif response == "a":
-            return mc_names
+            return mc_units
         else:
             try:
                 i = int(response)
-                if i <= len(mc_names):
-                    return [mc_names[i]]
+                if i <= len(mc_units):
+                    return [mc_units[i]]
             except ValueError:
                 print("invalid entry")
 
@@ -90,6 +106,14 @@ def choose_action():
 
 
 elevate(graphical=False)
+
+manager = Manager()
+manager.load()
+man_units = manager.Manager.ListUnitFiles()
+for name, enabled in man_units:
+    str_name = name.decode()
+    if "minecraft" in str_name:
+        print(str_name, enabled)
 
 while True:
     show_state()
