@@ -5,9 +5,18 @@ from elevate import elevate
 
 
 class McUnit:
-    mc_root = Path('/opt/minecraft')
-    unit_name_format = 'minecraft@{}.service'
-    systemd_enabled_format = '/etc/systemd/system/multi-user.target.wants/{}'
+    """
+    A classs to represent a Unit of the minecraft service.
+    The factory function discover_units expects to find installations of
+    Minecraft Server in folders under /opt/minecraft and returns a list
+    of McUnit
+    """
+
+    mc_root = Path("/opt/minecraft")
+    unit_name_format = "minecraft@{}.service"
+    systemd_enabled_format = "/etc/systemd/system/multi-user.target.wants/{}"
+    repr_format = "{:2s}  {:40s}{:15s}{:15s}{}"
+    heading = repr_format.format("No", "Name", "State", "SubState", "Auto Start")
 
     def __init__(self, name, unit, path):
         self.name = name
@@ -18,10 +27,9 @@ class McUnit:
     def discover_units(cls):
         # factory function that queries systemd files and returns a list
         # of McUints (1 systemd unit per Minecraft installation)
-        mc_installs = list(cls.mc_root.glob('*'))
+        mc_installs = list(cls.mc_root.glob("*"))
         mc_names = [
-            str(mc.name) for mc in mc_installs if
-            not str(mc.name).startswith('.')
+            str(mc.name) for mc in mc_installs if not str(mc.name).startswith(".")
         ]
 
         units = []
@@ -30,35 +38,31 @@ class McUnit:
             unit = Unit(unit_name.encode("utf8"))
             unit.load()
             path = Path(cls.systemd_enabled_format.format(unit_name))
-            units[i] = McUnit(mc_name, unit, path)
+            units.append(McUnit(mc_name, unit, path))
 
         return units
 
+    def print_str(self, i):
+        state = self.unit.Unit.ActiveState.decode("utf8")
+        sub_state = self.unit.Unit.SubState.decode("utf8")
+        enabled = self.path.exists()
+        return self.repr_format.format(str(i), self.name, state, sub_state, enabled)
 
-def start(num):
-    print(f"Starting {mc_units[num].name} ...")
-    mc_units[num].unit.Start(b'replace')
+    def start(self):
+        print(f"Starting {self.name} ...")
+        self.unit.Start(b"replace")
 
+    def stop(self):
+        print(f"Stopping {self.name} ...")
+        self.unit.Stop(b"replace")
 
-def stop(num):
-    print(f"Stopping {mc_units[num].name} ...")
-    mc_units[num].unit.Stop(b'replace')
+    def enable(self):
+        pass
 
+    def disable(self):
+        pass
 
-def enable(name):
-    pass
-
-
-def disable(name):
-    pass
-
-
-actions = {
-    "s": start,
-    "k": stop,
-    "e": enable,
-    "d": disable
-}
+    actions = {"s": start, "k": stop, "e": enable, "d": disable}
 
 
 mc_units = McUnit.discover_units()
@@ -66,19 +70,14 @@ mc_units = McUnit.discover_units()
 
 def show_state():
     print("\nMinecraft Servers' State")
-    print("No. {:40s}{:15s}{:15s}{}".format(
-        "Name", "State", "SubState", "Auto Start"
-    ))
-    for i, mc in enumerate(mc_units.values()):
-        state = mc.unit.Unit.ActiveState.decode("utf8")
-        sub_state = mc.unit.Unit.SubState.decode("utf8")
-        enabled = mc.path.exists()
-        print(f"{i:2d}  {mc.name:40s}{state:15s}{sub_state:15s}{enabled}")
+    print(McUnit.heading)
+    for i, mc in enumerate(mc_units):
+        print(mc.print_str(i))
 
 
 def choose_server():
     while True:
-        print("which server do you want to change (a=all <enter>=exit)?")
+        print("Choose a Server (a=all <enter>=exit)?")
         response = sys.stdin.readline().strip("\n")
         if not response:
             break
@@ -95,12 +94,12 @@ def choose_server():
 
 def choose_action():
     while True:
-        print("which action (s=start k=stop e=enable d=disable <enter>=exit")
+        print("Choose an action" "(s=start k=stop e=enable d=disable <enter>=exit")
         response = sys.stdin.readline().strip("\n")
         if not response:
             break
-        elif response in actions:
-            return actions[response]
+        elif response in McUnit.actions:
+            return McUnit.actions[response]
         else:
             print("invalid entry")
 
@@ -115,6 +114,8 @@ for name, enabled in man_units:
     if "minecraft" in str_name:
         print(str_name, enabled)
 
+
+# main loop. Print status and request actions
 while True:
     show_state()
     servers = choose_server()
@@ -125,5 +126,4 @@ while True:
         break
 
     for server in servers:
-        print(action, server.name)
-        action(server.num)
+        action(server)
