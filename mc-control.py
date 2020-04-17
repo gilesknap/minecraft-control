@@ -9,15 +9,14 @@ class McUnit:
     unit_name_format = 'minecraft@{}.service'
     systemd_enabled_format = '/etc/systemd/system/multi-user.target.wants/{}'
 
-    def __init__(self, name, num, unit, path):
+    def __init__(self, name, unit, path):
         self.name = name
-        self.num = num
         self.unit = unit
         self.path = path
 
     @classmethod
     def discover_units(cls):
-        # factory function that queries systemd files and returns a dictionary
+        # factory function that queries systemd files and returns a list
         # of McUints (1 systemd unit per Minecraft installation)
         mc_installs = list(cls.mc_root.glob('*'))
         mc_names = [
@@ -25,13 +24,13 @@ class McUnit:
             not str(mc.name).startswith('.')
         ]
 
-        units = {}
+        units = []
         for i, mc_name in enumerate(mc_names):
             unit_name = cls.unit_name_format.format(mc_name)
             unit = Unit(unit_name.encode("utf8"))
             unit.load()
             path = Path(cls.systemd_enabled_format.format(unit_name))
-            units[i] = McUnit(mc_name, i, unit, path)
+            units[i] = McUnit(mc_name, unit, path)
 
         return units
 
