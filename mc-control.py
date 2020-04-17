@@ -9,8 +9,9 @@ class McUnit:
     unit_name_format = 'minecraft@{}.service'
     systemd_enabled_format = '/etc/systemd/system/multi-user.target.wants/{}'
 
-    def __init__(self, name, unit, path):
+    def __init__(self, name, num, unit, path):
         self.name = name
+        self.num = num
         self.unit = unit
         self.path = path
 
@@ -30,19 +31,19 @@ class McUnit:
             unit = Unit(unit_name.encode("utf8"))
             unit.load()
             path = Path(cls.systemd_enabled_format.format(unit_name))
-            units[i] = McUnit(mc_name, unit, path)
+            units[i] = McUnit(mc_name, i, unit, path)
 
         return units
 
 
-def start(unit):
-    print(f"Starting {name} ...")
-    mc_units[name].Start(b'replace')
+def start(num):
+    print(f"Starting {mc_units[num].name} ...")
+    mc_units[num].unit.Start(b'replace')
 
 
-def stop(name):
-    print(f"Stopping {name} ...")
-    mc_units[name].Stop(b'replace')
+def stop(num):
+    print(f"Stopping {mc_units[num].name} ...")
+    mc_units[num].unit.Stop(b'replace')
 
 
 def enable(name):
@@ -125,5 +126,5 @@ while True:
         break
 
     for server in servers:
-        print(action, server)
-        action(server)
+        print(action, server.name)
+        action(server.num)
