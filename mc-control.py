@@ -1,4 +1,5 @@
 import sys
+import os
 import configparser
 from pathlib import Path
 from pystemd.systemd1 import Unit, Manager
@@ -18,11 +19,13 @@ class McUnit:
 
     mc_root = Path("/opt/minecraft")
     unit_name_format = "minecraft@{}.service"
-    config_name = "server.properties"
-    repr_format = "{:2s}  {:40s}{:15s}{:15s}{:12s}{:12s}{:20s}"
+    screen_cmd_format = 'su - minecraft -c "/usr/bin/screen -Dr mc-{}"'
+    repr_format = "{:2s}  {:40s}{:15s}{:15s}{:12s}{:12s}{:20s}{:3s}"
     heading = repr_format.format(
-        "No", "Name", "State", "SubState", "Auto Start", "GameMode", "World"
+        "No", "Name", "State", "SubState", "Auto Start", "GameMode", "World", "Worlds"
     )
+    config_name = "server.properties"
+    non_worlds = ["logs", "debug", "plugins", "crash-reports"]
 
     manager = Manager()
     manager.load()
@@ -42,6 +45,11 @@ class McUnit:
         except (FileNotFoundError, KeyError):
             self.world = "Unknown"
             self.mode = "Unknown"
+        self.worlds = [
+            f.name
+            for f in (self.mc_root / name).iterdir()
+            if f.name not in self.non_worlds and f.is_dir()
+        ]
 
     @classmethod
     def discover_units(cls):
@@ -66,7 +74,14 @@ class McUnit:
         sub_state = self.unit.Unit.SubState.decode("utf8")
         enabled = self.manager.Manager.GetUnitFileState(self.unit_name).decode()
         return self.repr_format.format(
-            str(self.num), self.name, state, sub_state, enabled, self.mode, self.world,
+            str(self.num),
+            self.name,
+            state,
+            sub_state,
+            enabled,
+            self.mode,
+            self.world,
+            str(len(self.worlds)),
         )
 
     def start(self):
@@ -79,7 +94,9 @@ class McUnit:
 
     def restart(self):
         print(f"Restarting {self.name} ...")
-        self.unit.Restart(b"replace")
+        # unit.Restart does not work for some reason
+        self.unit.Stop(b"replace")
+        self.unit.Start(b"replace")
 
     def enable(self):
         self.manager.Manager.EnableUnitFiles([self.unit_name], False, False)
@@ -87,7 +104,18 @@ class McUnit:
     def disable(self):
         self.manager.Manager.DisableUnitFiles([self.unit_name], False)
 
-    actions = {"s": start, "k": stop, "e": enable, "d": disable}
+    def console(self):
+        cmd = self.screen_cmd_format.format(self.name)
+        os.system(cmd)
+
+    actions = {
+        "s": start,
+        "k": stop,
+        "e": enable,
+        "d": disable,
+        "r": restart,
+        "c": console,
+    }
 
 
 mc_units = McUnit.discover_units()
@@ -96,13 +124,13 @@ mc_units = McUnit.discover_units()
 def show_state():
     print("\nMinecraft Servers' State")
     print(McUnit.heading)
-    for i, mc in enumerate(mc_units):
+    for mc in mc_units:
         print(mc)
 
 
 def choose_server():
     while True:
-        print("\nChoose a Server (a=all <enter>=exit)?")
+        print("\nChoose a Server (a=all)")
         response = sys.stdin.readline().strip("\n")
         if not response:
             break
@@ -119,7 +147,11 @@ def choose_server():
 
 def choose_action():
     while True:
-        print("\nChoose an action" "(s=start k=stop e=enable d=disable <enter>=exit")
+        prompt = "\nChoose an action:"
+        for key, value in McUnit.actions.items():
+            prompt += f" {key}={value.__name__}"
+        print(prompt)
+
         response = sys.stdin.readline().strip("\n")
         if not response:
             break
@@ -136,8 +168,6 @@ while True:
     if not servers:
         break
     action = choose_action()
-    if not action:
-        break
-
-    for server in servers:
-        action(server)
+    if action:
+        for server in servers:
+            action(server)
