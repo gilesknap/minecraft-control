@@ -1,10 +1,8 @@
-import sys
 from elevate import elevate
 from mcunit import McUnit
-from chooser import Chooser
+from config import Config
 
 elevate(graphical=False)  # need sudo for systemd actions
-
 
 mc_units = McUnit.discover_units()
 
@@ -16,16 +14,20 @@ def show_state():
         print(mc)
 
 
-# generate an actions prompt from the list of available actions in McUnit
-action_prompt = "Choose an action:"
-for key, value in McUnit.actions.items():
-    action_prompt += f" {key}={value.__name__}"
+def set_world(unit):
+    chooser = Config.make_world_chooser(unit.worlds)
+    world = chooser.ask()
+    if world:
+        print(f"switching to {world}")
+        unit.set_world(int(world))
+    else:
+        print("cancelled")
 
-# generate a numeric list of servers plus 'a' for all servers
-servers = ["a"] + [str(i) for i in range(len(mc_units))]
 
-choose_action = Chooser(action_prompt, McUnit.actions.keys())
-choose_server = Chooser("Choose a Server (a=all)", servers)
+all_actions = McUnit.actions
+all_actions.update({'w': set_world})
+choose_server = Config.make_server_chooser(len(mc_units))
+choose_action = Config.make_action_chooser(all_actions)
 
 
 # main loop. Print status and request actions
