@@ -1,121 +1,9 @@
 import sys
-import os
-import configparser
-from pathlib import Path
-from pystemd.systemd1 import Unit, Manager
 from elevate import elevate
-
+from mcunit import McUnit
+from chooser import Chooser
 
 elevate(graphical=False)  # need sudo for systemd actions
-
-
-class McUnit:
-    """
-    A class to represent a Unit of the minecraft service.
-    The factory function discover_units expects to find installations of
-    Minecraft Server in folders under /opt/minecraft and returns a list
-    of McUnit
-    """
-
-    mc_root = Path("/opt/minecraft")
-    unit_name_format = "minecraft@{}.service"
-    screen_cmd_format = 'su - minecraft -c "/usr/bin/screen -Dr mc-{}"'
-    repr_format = "{:2s}  {:40s}{:15s}{:15s}{:12s}{:12s}{:20s}{:3s}"
-    heading = repr_format.format(
-        "No", "Name", "State", "SubState", "Auto Start", "GameMode", "World", "Worlds"
-    )
-    config_name = "server.properties"
-    non_worlds = ["logs", "debug", "plugins", "crash-reports"]
-
-    manager = Manager()
-    manager.load()
-    parser = configparser.ConfigParser()
-
-    def __init__(self, name, unit, unit_name, num):
-        self.name = name
-        self.unit = unit
-        self.unit_name = unit_name
-        self.num = num
-        self.config_path = self.mc_root / name / self.config_name
-        try:
-            with open(self.config_path) as stream:
-                self.parser.read_string("[top]\n" + stream.read())
-            self.world = self.parser["top"]["level-name"]
-            self.mode = self.parser["top"]["gamemode"]
-        except (FileNotFoundError, KeyError):
-            self.world = "Unknown"
-            self.mode = "Unknown"
-        self.worlds = [
-            f.name
-            for f in (self.mc_root / name).iterdir()
-            if f.name not in self.non_worlds and f.is_dir()
-        ]
-
-    @classmethod
-    def discover_units(cls):
-        # factory function that queries systemd files and returns a list
-        # of McUints (1 systemd unit per Minecraft installation)
-        mc_installs = list(cls.mc_root.glob("*"))
-        mc_names = [
-            str(mc.name) for mc in mc_installs if not str(mc.name).startswith(".")
-        ]
-
-        units = []
-        for i, mc_name in enumerate(mc_names):
-            unit_name = cls.unit_name_format.format(mc_name)
-            unit = Unit(unit_name.encode("utf8"))
-            unit.load()
-            units.append(McUnit(mc_name, unit, unit_name, i))
-
-        return units
-
-    def __repr__(self):
-        state = self.unit.Unit.ActiveState.decode("utf8")
-        sub_state = self.unit.Unit.SubState.decode("utf8")
-        enabled = self.manager.Manager.GetUnitFileState(self.unit_name).decode()
-        return self.repr_format.format(
-            str(self.num),
-            self.name,
-            state,
-            sub_state,
-            enabled,
-            self.mode,
-            self.world,
-            str(len(self.worlds)),
-        )
-
-    def start(self):
-        print(f"Starting {self.name} ...")
-        self.unit.Start(b"replace")
-
-    def stop(self):
-        print(f"Stopping {self.name} ...")
-        self.unit.Stop(b"replace")
-
-    def restart(self):
-        print(f"Restarting {self.name} ...")
-        # unit.Restart does not work for some reason
-        self.unit.Stop(b"replace")
-        self.unit.Start(b"replace")
-
-    def enable(self):
-        self.manager.Manager.EnableUnitFiles([self.unit_name], False, False)
-
-    def disable(self):
-        self.manager.Manager.DisableUnitFiles([self.unit_name], False)
-
-    def console(self):
-        cmd = self.screen_cmd_format.format(self.name)
-        os.system(cmd)
-
-    actions = {
-        "s": start,
-        "k": stop,
-        "e": enable,
-        "d": disable,
-        "r": restart,
-        "c": console,
-    }
 
 
 mc_units = McUnit.discover_units()
@@ -128,46 +16,31 @@ def show_state():
         print(mc)
 
 
-def choose_server():
-    while True:
-        print("\nChoose a Server (a=all)")
-        response = sys.stdin.readline().strip("\n")
-        if not response:
-            break
-        elif response == "a":
-            return mc_units
-        else:
-            try:
-                i = int(response)
-                if i <= len(mc_units):
-                    return [mc_units[i]]
-            except ValueError:
-                print("invalid entry")
+# generate an actions prompt from the list of available actions in McUnit
+action_prompt = "Choose an action:"
+for key, value in McUnit.actions.items():
+    action_prompt += f" {key}={value.__name__}"
 
+# generate a numeric list of servers plus 'a' for all servers
+servers = ["a"] + [str(i) for i in range(len(mc_units))]
 
-def choose_action():
-    while True:
-        prompt = "\nChoose an action:"
-        for key, value in McUnit.actions.items():
-            prompt += f" {key}={value.__name__}"
-        print(prompt)
-
-        response = sys.stdin.readline().strip("\n")
-        if not response:
-            break
-        elif response in McUnit.actions:
-            return McUnit.actions[response]
-        else:
-            print("invalid entry")
+choose_action = Chooser(action_prompt, McUnit.actions.keys())
+choose_server = Chooser("Choose a Server (a=all)", servers)
 
 
 # main loop. Print status and request actions
 while True:
     show_state()
-    servers = choose_server()
-    if not servers:
+    server = choose_server.ask()
+    if not server:
         break
-    action = choose_action()
+    action = choose_action.ask()
     if action:
-        for server in servers:
-            action(server)
+        function = McUnit.actions[action]
+        if server == "a":
+            for unit in mc_units:
+                function(unit)
+        else:
+            function(mc_units[int(server)])
+    else:
+        print("No action")
