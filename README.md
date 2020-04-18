@@ -15,4 +15,6 @@ Current functions
 Future functions
 
 - switch configured world for a server
-- backup a server
+- backup a world
+- create new server
+- add new world to server
