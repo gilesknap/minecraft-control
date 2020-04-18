@@ -1,10 +1,11 @@
 import sys
+import configparser
 from pathlib import Path
 from pystemd.systemd1 import Unit, Manager
 from elevate import elevate
 
 
-elevate(graphical=False) # need sudo for systemd actions
+elevate(graphical=False)  # need sudo for systemd actions
 
 
 class McUnit:
@@ -17,16 +18,30 @@ class McUnit:
 
     mc_root = Path("/opt/minecraft")
     unit_name_format = "minecraft@{}.service"
-    repr_format = "{:2s}  {:40s}{:15s}{:15s}{}"
-    heading = repr_format.format("No", "Name", "State", "SubState", "Auto Start")
+    config_name = "server.properties"
+    repr_format = "{:2s}  {:40s}{:15s}{:15s}{:12s}{:12s}{:20s}"
+    heading = repr_format.format(
+        "No", "Name", "State", "SubState", "Auto Start", "GameMode", "World"
+    )
 
     manager = Manager()
     manager.load()
+    parser = configparser.ConfigParser()
 
-    def __init__(self, name, unit, unit_name):
+    def __init__(self, name, unit, unit_name, num):
         self.name = name
         self.unit = unit
         self.unit_name = unit_name
+        self.num = num
+        self.config_path = self.mc_root / name / self.config_name
+        try:
+            with open(self.config_path) as stream:
+                self.parser.read_string("[top]\n" + stream.read())
+            self.world = self.parser["top"]["level-name"]
+            self.mode = self.parser["top"]["gamemode"]
+        except (FileNotFoundError, KeyError):
+            self.world = "Unknown"
+            self.mode = "Unknown"
 
     @classmethod
     def discover_units(cls):
@@ -42,15 +57,17 @@ class McUnit:
             unit_name = cls.unit_name_format.format(mc_name)
             unit = Unit(unit_name.encode("utf8"))
             unit.load()
-            units.append(McUnit(mc_name, unit, unit_name))
+            units.append(McUnit(mc_name, unit, unit_name, i))
 
         return units
 
-    def print_str(self, i):
+    def __repr__(self):
         state = self.unit.Unit.ActiveState.decode("utf8")
         sub_state = self.unit.Unit.SubState.decode("utf8")
         enabled = self.manager.Manager.GetUnitFileState(self.unit_name).decode()
-        return self.repr_format.format(str(i), self.name, state, sub_state, enabled)
+        return self.repr_format.format(
+            str(self.num), self.name, state, sub_state, enabled, self.mode, self.world,
+        )
 
     def start(self):
         print(f"Starting {self.name} ...")
@@ -59,6 +76,10 @@ class McUnit:
     def stop(self):
         print(f"Stopping {self.name} ...")
         self.unit.Stop(b"replace")
+
+    def restart(self):
+        print(f"Restarting {self.name} ...")
+        self.unit.Restart(b"replace")
 
     def enable(self):
         self.manager.Manager.EnableUnitFiles([self.unit_name], False, False)
@@ -76,12 +97,12 @@ def show_state():
     print("\nMinecraft Servers' State")
     print(McUnit.heading)
     for i, mc in enumerate(mc_units):
-        print(mc.print_str(i))
+        print(mc)
 
 
 def choose_server():
     while True:
-        print("Choose a Server (a=all <enter>=exit)?")
+        print("\nChoose a Server (a=all <enter>=exit)?")
         response = sys.stdin.readline().strip("\n")
         if not response:
             break
@@ -98,7 +119,7 @@ def choose_server():
 
 def choose_action():
     while True:
-        print("Choose an action" "(s=start k=stop e=enable d=disable <enter>=exit")
+        print("\nChoose an action" "(s=start k=stop e=enable d=disable <enter>=exit")
         response = sys.stdin.readline().strip("\n")
         if not response:
             break
