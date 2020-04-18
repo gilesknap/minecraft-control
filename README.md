@@ -11,10 +11,10 @@ Current functions
 - start / stop / restart
 - enable / disable (i.e. control auto start)
 - attach to console
+- switch configured world for a server
 
 Future functions
 
-- switch configured world for a server
 - backup a world
 - create new server
 - add new world to server
