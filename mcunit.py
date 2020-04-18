@@ -2,6 +2,7 @@
 import os
 import configparser
 from pathlib import Path
+from properties import Properties
 from time import sleep
 from pystemd.systemd1 import Unit, Manager
 from config import Config
@@ -23,7 +24,6 @@ class McUnit:
 
     manager = Manager()
     manager.load()
-    parser = configparser.ConfigParser()
 
     def __init__(self, name, unit, unit_name, num):
         self.name = name
@@ -31,14 +31,12 @@ class McUnit:
         self.unit_name = unit_name
         self.num = num
         self.config_path = Config.mc_root / name / self.config_name
-        try:
-            with open(self.config_path) as stream:
-                self.parser.read_string("[top]\n" + stream.read())
-            self.world = self.parser["top"]["level-name"]
-            self.mode = self.parser["top"]["gamemode"]
-        except (FileNotFoundError, KeyError):
-            self.world = "Unknown"
-            self.mode = "Unknown"
+
+        self.properties = Properties(self.config_path)
+        self.properties.read()
+        self.world = self.properties["level-name"]
+        self.mode = self.properties["gamemode"]
+
         self.worlds = [
             f.name
             for f in (Config.mc_root / name).iterdir()
@@ -75,23 +73,18 @@ class McUnit:
             enabled,
             self.mode,
             self.world,
-            str(len(self.worlds)),
+            str(len(self.worlds))
         )
 
     def set_world(self, world_num):
         if len(self.worlds) >= world_num >= 0:
-            #self.stop()
+            self.stop()
             sleep(3)  # todo should really monitor state
 
-            with open(self.config_path) as stream:
-                self.parser.read_string("[top]\n" + stream.read())
-            self.parser["top"]["level-name"] = self.worlds[world_num]
-            contents = ""
-            # is the best we can do with ConfigParser and a no sections file?
-            for name, val in self.parser['top'].items():
-                contents += f"{name}={val}\n"
-            print(contents)
-
+            self.properties["level-name"] = self.worlds[world_num]
+            self.properties.write()
+            self.world = self.worlds[world_num]
+            self.start()
 
     def start(self):
         print(f"Starting {self.name} ...")

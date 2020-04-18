@@ -25,7 +25,7 @@ def set_world(unit):
 
 
 all_actions = McUnit.actions
-all_actions.update({'w': set_world})
+all_actions.update({"w": set_world})
 choose_server = Config.make_server_chooser(len(mc_units))
 choose_action = Config.make_action_chooser(all_actions)
 
