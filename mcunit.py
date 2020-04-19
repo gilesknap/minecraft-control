@@ -3,6 +3,7 @@ import os
 from properties import Properties
 from time import sleep
 from pystemd.systemd1 import Unit, Manager
+from pystemd.dbuslib import DBus
 from config import Config
 
 
@@ -49,11 +50,13 @@ class McUnit:
         mc_names = [
             str(mc.name) for mc in mc_installs if not str(mc.name).startswith(".")
         ]
-
         units = []
+
+        bus = DBus(user_mode=True)
+        bus.open()
         for i, mc_name in enumerate(mc_names):
             unit_name = Config.unit_name_format.format(mc_name)
-            unit = Unit(unit_name.encode("utf8"))
+            unit = Unit(unit_name.encode("utf8"), bus=bus)
             unit.load()
             units.append(McUnit(mc_name, unit, unit_name, i))
 

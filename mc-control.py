@@ -1,8 +1,5 @@
-from elevate import elevate
 from mcunit import McUnit
 from config import Config
-
-elevate(graphical=False)  # need sudo for systemd actions
 
 mc_units = McUnit.discover_units()
 

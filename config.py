@@ -6,7 +6,7 @@ class Config:
     # todo these should be read from a config file
     mc_root = Path("/opt/minecraft")
     unit_name_format = "minecraft@{}.service"
-    screen_cmd_format = 'su - minecraft -c "/usr/bin/screen -Dr mc-{}"'
+    screen_cmd_format = "/usr/bin/screen -Dr mc-{}"
     non_worlds = ["logs", "debug", "plugins", "crash-reports"]
 
     def make_server_chooser(count):

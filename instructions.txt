@@ -1,0 +1,21 @@
+Notes for instructions
+======================
+
+I may provide a script to set up a new machine and add new servers
+or I may just provide instructions
+
+sudo adduser minecrafti
+...
+mkdir -p ~/.config/systemd/user
+
+-- here install minecraft-control
+
+cp <install_folder>/minecraft@.service ~/.config/systemd/user
+  note above file will ENFORCE location /home/minecrafti/MinecraftServers
+
+sudo loginctl enable-linger minecrafti
+  but if that fails then:
+sudo touch /var/lib/systemd/linger/minecrafti
+
+
+systemctl --user enable minecraft@DadNoahSurvival
