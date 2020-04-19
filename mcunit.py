@@ -1,7 +1,5 @@
 
 import os
-import configparser
-from pathlib import Path
 from properties import Properties
 from time import sleep
 from pystemd.systemd1 import Unit, Manager
@@ -16,7 +14,7 @@ class McUnit:
     of McUnit
     """
 
-    repr_format = "{:2s}  {:40s}{:15s}{:15s}{:12s}{:12s}{:20s}{:3s}"
+    repr_format = "{:3.2s}{:20.19s}{:11.10s}{:14.13s}{:12.11s}{:10.9s}{:14.13s}{:3s}"
     heading = repr_format.format(
         "No", "Name", "State", "SubState", "Auto Start", "GameMode", "World", "Worlds"
     )
