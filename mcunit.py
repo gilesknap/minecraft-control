@@ -15,13 +15,16 @@ class McUnit:
     of McUnit
     """
 
-    repr_format = "{:3.2s}{:20.19s}{:11.10s}{:14.13s}{:12.11s}{:10.9s}{:14.13s}{:3s}"
+    repr_format = "{:3.2s}{:20.19s}{:11.10s}{:8.7s}{:9.8s}{:10.9s}{:15.14s}{:4.4s}"
     heading = repr_format.format(
-        "No", "Name", "State", "SubState", "Auto Start", "GameMode", "World", "Worlds"
+        "No", "Name", "State", "SubSt", "Auto Start", "GameMode", "World", "Wlds"
     )
     config_name = "server.properties"
 
-    manager = Manager()
+    # keep a dbus and a manager for the lifetime of the class/app
+    dbus = DBus(user_mode=True)
+    dbus.open()
+    manager = Manager(bus=dbus)
     manager.load()
 
     def __init__(self, name, unit, unit_name, num):
@@ -52,11 +55,9 @@ class McUnit:
         ]
         units = []
 
-        bus = DBus(user_mode=True)
-        bus.open()
         for i, mc_name in enumerate(mc_names):
             unit_name = Config.unit_name_format.format(mc_name)
-            unit = Unit(unit_name.encode("utf8"), bus=bus)
+            unit = Unit(unit_name.encode("utf8"), bus=cls.dbus)
             unit.load()
             units.append(McUnit(mc_name, unit, unit_name, i))
 

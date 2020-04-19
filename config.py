@@ -4,7 +4,7 @@ from chooser import Chooser
 
 class Config:
     # todo these should be read from a config file
-    mc_root = Path("/opt/minecraft")
+    mc_root = Path("/home/minecraft/MinecraftServers")
     unit_name_format = "minecraft@{}.service"
     screen_cmd_format = "/usr/bin/screen -Dr mc-{}"
     non_worlds = ["logs", "debug", "plugins", "crash-reports"]

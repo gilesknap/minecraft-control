@@ -4,18 +4,22 @@ Notes for instructions
 I may provide a script to set up a new machine and add new servers
 or I may just provide instructions
 
-sudo adduser minecrafti
+sudo adduser minecraft
 ...
 mkdir -p ~/.config/systemd/user
 
--- here install minecraft-control
+-- here install minecraft-control from pypi0
 
 cp <install_folder>/minecraft@.service ~/.config/systemd/user
-  note above file will ENFORCE location /home/minecrafti/MinecraftServers
+  (servers location ENFORCED to be /home/minecraft/MinecraftServers)
 
-sudo loginctl enable-linger minecrafti
+sudo loginctl enable-linger minecraft
   but if that fails then:
-sudo touch /var/lib/systemd/linger/minecrafti
+sudo touch /var/lib/systemd/linger/minecraft
 
-
+ this should then work (but will use the script to do so)
 systemctl --user enable minecraft@DadNoahSurvival
+
+note that when changing the service file you need
+systemctl --user  daemon-reload
+
