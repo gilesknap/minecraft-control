@@ -84,6 +84,7 @@ class McUnit:
         return Config.mc_root / self.name / self.worlds[world_num]
 
     def set_world(self, world_num):
+        self.properties.read()
         if not len(self.worlds) >= world_num >= 0:
             raise ValueError(f"world number {world_num} does not exist")
         self.stop()
@@ -106,10 +107,9 @@ class McUnit:
             sleep(.2)
 
     def restart(self):
-        print(f"Restarting {self.name} ...")
         # unit.Restart does not work for some reason
-        self.unit.Stop(b"replace")
-        self.unit.Start(b"replace")
+        self.stop()
+        self.start()
 
     def enable(self):
         self.manager.Manager.EnableUnitFiles([self.unit_name], False, False)
