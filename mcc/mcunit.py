@@ -87,12 +87,10 @@ class McUnit:
         self.properties.read()
         if not len(self.worlds) >= world_num >= 0:
             raise ValueError(f"world number {world_num} does not exist")
-        self.stop()
 
         self.properties["level-name"] = self.worlds[world_num]
         self.properties.write()
         self.world = self.worlds[world_num]
-        self.start()
 
     def start(self):
         print(f"Starting {self.name} ...")
