@@ -78,15 +78,20 @@ class McUnit:
             str(len(self.worlds))
         )
 
-    def set_world(self, world_num):
-        if len(self.worlds) >= world_num >= 0:
-            self.stop()
-            sleep(3)  # todo should really monitor state
+    def get_world_path(self, world_num):
+        if not len(self.worlds) >= world_num >= 0:
+            raise ValueError(f"world number {world_num} does not exist")
+        return Config.mc_root / self.name / self.worlds[world_num]
 
-            self.properties["level-name"] = self.worlds[world_num]
-            self.properties.write()
-            self.world = self.worlds[world_num]
-            self.start()
+    def set_world(self, world_num):
+        if not len(self.worlds) >= world_num >= 0:
+            raise ValueError(f"world number {world_num} does not exist")
+        self.stop()
+
+        self.properties["level-name"] = self.worlds[world_num]
+        self.properties.write()
+        self.world = self.worlds[world_num]
+        self.start()
 
     def start(self):
         print(f"Starting {self.name} ...")
@@ -95,6 +100,10 @@ class McUnit:
     def stop(self):
         print(f"Stopping {self.name} ...")
         self.unit.Stop(b"replace")
+
+        # wait for the service to complete termination
+        while self.running:
+            sleep(.2)
 
     def restart(self):
         print(f"Restarting {self.name} ...")
@@ -111,6 +120,11 @@ class McUnit:
     def console(self):
         cmd = Config.screen_cmd_format.format(self.name)
         os.system(cmd)
+
+    @property
+    def running(self):
+        state = self.unit.Unit.ActiveState.decode("utf8")
+        return state != "inactive"
 
     actions = {
         "s": start,
