@@ -5,7 +5,7 @@ from mcc.chooser import Chooser
 class Config:
     # todo these should be read from a config file
     backup_path = Path("/mnt/bigdisk/MinecraftBackups")
-    mc_root = Path("/home/giles/MinecraftServers")
+    mc_root = Path("/home/minecraft/MinecraftServers")
     unit_name_format = "minecraft@{}.service"
     screen_cmd_format = "/usr/bin/screen -Dr mc-{}"
     non_worlds = ["logs", "debug", "plugins", "crash-reports"]
