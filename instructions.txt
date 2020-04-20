@@ -13,6 +13,7 @@ cp minecraft@.service ~/.config/systemd/user
 # servers location ENFORCED to be /home/minecraft/MinecraftServers
 # if you want to change the above or use a different account name
 # then edit ~/.config/systemd/user/minecraft@.service
+# also edit the path in mcc/config.py
 
 # COPY as many minecraft servers as you fancy to
 # /home/minecraft/MinecraftServers one subfolder per server
