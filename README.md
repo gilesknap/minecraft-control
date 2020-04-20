@@ -14,10 +14,10 @@ Current functions
 - enable / disable (i.e. control auto start)
 - attach to console
 - switch configured world for a server
+- backup a world
 
 Future functions
 
-- backup a world
 - create new server
 - add new world to server
 
@@ -35,7 +35,7 @@ No Name                State      SubSt   Auto Sta GameMode  World          Wlds
 Choose a Server (a=all)
 2
 
-Choose an action: s=start k=stop e=enable d=disable r=restart c=console w=set_world
+Choose an action: s=start k=stop e=enable d=disable r=restart c=console w=set_world b=backup_world
 e
 
 Minecraft Servers' State
@@ -44,7 +44,7 @@ No Name                State      SubSt   Auto Sta GameMode  World          Wlds
 1  DadNoahSurvival     inactive   dead    disabled adventure GilesWorld     2
 2  DevilsDeep          inactive   dead    enabled  adventure Deep           2
 
-
+Choose an action: s=start k=stop e=enable d=disable r=restart c=console w=set_world b=backup_world
 ```
 
 The project is in a working state but not yet fully documented. See
