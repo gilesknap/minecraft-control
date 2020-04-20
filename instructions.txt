@@ -1,25 +1,47 @@
-Notes for instructions
-======================
+Notes for future instructions
+=============================
 
-I may provide a script to set up a new machine and add new servers
-or I may just provide instructions
+# I may provide a script to set up a new machine and add new servers
+# or I may just provide instructions
 
+# recommend using a new account and keep its capabilities low
 sudo adduser minecraft
-...
+# login as minecraft and
 mkdir -p ~/.config/systemd/user
+cp minecraft@.service ~/.config/systemd/user
 
--- here install minecraft-control from pypi0
+# servers location ENFORCED to be /home/minecraft/MinecraftServers
+# if you want to change the above or use a different account name
+# then edit ~/.config/systemd/user/minecraft@.service
 
-cp <install_folder>/minecraft@.service ~/.config/systemd/user
-  (servers location ENFORCED to be /home/minecraft/MinecraftServers)
+# COPY as many minecraft servers as you fancy to
+# /home/minecraft/MinecraftServers one subfolder per server
+# each to contain at a minimum server.jar and eula.txt
+# but also may contain multiple world folders
+#
+# place a copy of start_server in each server root folder
+# edit start_server if you want different memory config for a given instance
 
+# make sure the user is allowed to run services
 sudo loginctl enable-linger minecraft
-  but if that fails then:
+# but if that fails then:
 sudo touch /var/lib/systemd/linger/minecraft
 
- this should then work (but will use the script to do so)
-systemctl --user enable minecraft@DadNoahSurvival
-
-note that when changing the service file you need
+# note that after changing  ~/.config/systemd/user/minecraft@.service you need
 systemctl --user  daemon-reload
+
+# prerequisites
+you will need pipenv https://github.com/pypa/pipenv and python 3.7 or greater
+pip3 install --user pipenv
+(then make sure ~/.local/bin is in the path - this is where pipenv will go)
+sudo apt install screen
+sudo apt install libsystemd-dev
+cd minecraft-control
+pipenv install
+
+# launch the script mc-control.py and follow the prompts
+pipenv run python mc-control.py
+
+############################################################
+
 

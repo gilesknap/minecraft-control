@@ -1,18 +1,18 @@
 
 import os
-from properties import Properties
 from time import sleep
 from pystemd.systemd1 import Unit, Manager
 from pystemd.dbuslib import DBus
-from config import Config
+from mcc.config import Config
+from mcc.properties import Properties
 
 
 class McUnit:
     """
     A class to represent a Unit of the minecraft service.
     The factory function discover_units expects to find installations of
-    Minecraft Server in folders under /opt/minecraft and returns a list
-    of McUnit
+    Minecraft Server in folders under /home/minecraft/MinecraftServers
+    and returns a list of McUnit
     """
 
     repr_format = "{:3.2s}{:20.19s}{:11.10s}{:8.7s}{:9.8s}{:10.9s}{:15.14s}{:4.4s}"

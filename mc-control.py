@@ -1,5 +1,5 @@
-from mcunit import McUnit
-from config import Config
+from mcc.mcunit import McUnit
+from mcc.config import Config
 
 mc_units = McUnit.discover_units()
 
