@@ -108,7 +108,7 @@ class ProcessWrapper:
     def output_loop(self, fr):
         while self.running:
             response = fr.read()
-            if response:
+            if response and len(response) > 1:
                 print(response)
             sleep(0.1)
 
