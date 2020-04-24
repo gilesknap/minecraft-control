@@ -11,9 +11,11 @@ mkdir -p ~/.config/systemd/user
 cp minecraft@.service ~/.config/systemd/user
 
 # servers location ENFORCED to be /home/minecraft/MinecraftServers
+# also this project is REQUIRED to be cloned to /home/minecraft/minecraft-control
 # if you want to change the above or use a different account name
 # then edit ~/.config/systemd/user/minecraft@.service
-# also edit the path in mcc/config.py
+# NOTE that after changing  ~/.config/systemd/user/minecraft@.service you need
+systemctl --user  daemon-reload
 
 # COPY as many minecraft servers as you fancy to
 # /home/minecraft/MinecraftServers one subfolder per server
@@ -27,9 +29,6 @@ cp minecraft@.service ~/.config/systemd/user
 sudo loginctl enable-linger minecraft
 # but if that fails then:
 sudo touch /var/lib/systemd/linger/minecraft
-
-# note that after changing  ~/.config/systemd/user/minecraft@.service you need
-systemctl --user  daemon-reload
 
 # prerequisites
 you will need pipenv https://github.com/pypa/pipenv and python 3.7 or greater
