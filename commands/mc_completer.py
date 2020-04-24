@@ -1,5 +1,8 @@
+#!/usr/bin/env python3
+
 import os
 import re
+import sys
 import readline
 from time import sleep
 from pathlib import Path
@@ -75,9 +78,9 @@ class ProcessWrapper:
             players.txt
         parses for command format and player names
 
-        generates a dictionary of str->[str] where the key represents a
-        command value is a list of possible keywords that come after it.
-        for consumption by ProcessWrapper.Completer
+        Generates a dictionary of str->[str] where the key represents a
+        command. Value is a list of possible keywords that come after it.
+        For consumption by ProcessWrapper.Completer.
         """
         cmd_tree = {}
 
@@ -109,8 +112,9 @@ class ProcessWrapper:
         while self.running:
             response = fr.read()
             if response and len(response) > 1:
-                print(response)
+                print(response, end="")
             sleep(0.1)
+        print("server terminated")
 
     def input_loop(self, proc):
         line = None
@@ -152,8 +156,13 @@ class ProcessWrapper:
             fr.close()
 
 
-w = ProcessWrapper(
-    "/home/giles/MinecraftServers/DadNoahSurvival/start_server",
-    "/home/giles/MinecraftServers/DadNoahSurvival/",
-)
-w.start()
+def main():
+
+    cmd = sys.argv[1:]
+    w = ProcessWrapper(cmd)
+    print(f"command starting: {cmd}")
+    w.start()
+
+
+if __name__ == "__main__":
+    main()
