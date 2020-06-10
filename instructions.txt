@@ -43,6 +43,13 @@ pipenv install
 # launch the script mc-control.py and follow the prompts
 pipenv run python mc-control.py
 
+IMPORTANT:
+if you see this error: 
+     pystemd.dbusexc.DBusFileNotFoundError: [err -2]: Could not open a bus to DBus
+
+This is because you have done 'su minecraft' 
+you must be logged in as minecraft e.g. 'ssh minecraft@gknuc'
+ 
 ############################################################
 
 
