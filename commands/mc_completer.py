@@ -2,12 +2,12 @@
 
 import os
 import re
-import sys
 import readline
-from time import sleep
+import sys
 from pathlib import Path
 from subprocess import PIPE, Popen
 from threading import Thread
+from time import sleep
 
 
 class ProcessWrapper:
@@ -66,7 +66,7 @@ class ProcessWrapper:
                 response = None
             return response
 
-    def __init__(self, cmd_line: str, cwd: Path = "."):
+    def __init__(self, cmd_line: str, cwd: Path = Path(".")):
         self.cmd_line = cmd_line
         self.cwd = cwd
         self.running: bool = True
@@ -139,7 +139,13 @@ class ProcessWrapper:
         fr = open("tmpout", "r")
         os.chdir(str(self.cwd))
         try:
-            proc = Popen(self.cmd_line, stdin=PIPE, stdout=fw, stderr=fw, bufsize=1,)
+            proc = Popen(
+                self.cmd_line,
+                stdin=PIPE,
+                stdout=fw,
+                stderr=fw,
+                bufsize=1,
+            )
             out_thread = Thread(target=self.output_loop, args=(fr,))
             out_thread.start()
             self.input_loop(proc)

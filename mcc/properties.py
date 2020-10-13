@@ -1,5 +1,5 @@
-from pathlib import Path
 import configparser
+from pathlib import Path
 
 
 class Properties:
@@ -7,6 +7,7 @@ class Properties:
     A class to read/write from a properties file which but with no
     section headers (i.e. Minecraft's server.properties)
     """
+
     parser = configparser.ConfigParser()
 
     def __init__(self, filepath: Path):
@@ -26,10 +27,10 @@ class Properties:
         # prepend a dummy 'top' section for ConfigParser
         with open(self.path) as stream:
             self.parser.read_string("[top]\n" + stream.read())
-        self.dict = self.parser['top']
+        self.dict = self.parser["top"]
 
     def write(self):
-        contents = ''
+        contents = ""
         for name, val in self.dict.items():
             contents += f"{name}={val}\n"
 

@@ -1,8 +1,10 @@
-
 import os
 from time import sleep
-from pystemd.systemd1 import Unit, Manager
+from typing import List
+
 from pystemd.dbuslib import DBus
+from pystemd.systemd1 import Manager, Unit
+
 from mcc.config import Config
 from mcc.properties import Properties
 
@@ -46,7 +48,7 @@ class McUnit:
         ]
 
     @classmethod
-    def discover_units(cls):
+    def discover_units(cls) -> List["McUnit"]:
         # factory function that queries systemd files and returns a list
         # of McUints (1 systemd unit per Minecraft installation)
         mc_installs = list(Config.mc_root.glob("*"))
@@ -75,7 +77,7 @@ class McUnit:
             enabled,
             self.mode,
             self.world,
-            str(len(self.worlds))
+            str(len(self.worlds)),
         )
 
     def get_world_path(self, world_num):
@@ -93,16 +95,14 @@ class McUnit:
         self.world = self.worlds[world_num]
 
     def start(self):
-        print(f"Starting {self.name} ...")
         self.unit.Start(b"replace")
 
     def stop(self):
-        print(f"Stopping {self.name} ...")
         self.unit.Stop(b"replace")
 
         # wait for the service to complete termination
         while self.running:
-            sleep(.2)
+            sleep(0.2)
 
     def restart(self):
         # unit.Restart does not work for some reason
@@ -123,12 +123,3 @@ class McUnit:
     def running(self):
         state = self.unit.Unit.ActiveState.decode("utf8")
         return state != "inactive"
-
-    actions = {
-        "s": start,
-        "k": stop,
-        "e": enable,
-        "d": disable,
-        "r": restart,
-        "c": console,
-    }
