@@ -1,4 +1,7 @@
 *.pyc
 .history
 tmpout
+build
+dist
+*.egg-info
 

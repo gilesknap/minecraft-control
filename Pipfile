@@ -4,12 +4,23 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-flake8 = "*"
 rope = "*"
-black = "*"
+pytest-cov = "*"
+pytest-black = "*"
+pytest-flake8 = "*"
+flake8-isort = "*"
+pytest-mypy = "*"
+sphinx-rtd-theme = "*"
+doc8 = "*"
 
 [packages]
 pystemd = "*"
+click = "*"
 
 [pipenv]
 allow_prereleases = true
+
+[scripts]
+# Put coverage here so we don't interfere with debugging in the IDE
+tests = "python -m pytest --cov-fail-under=90 --cov=mcc --cov-report term"
+docs = "sphinx-build -E -b html docs build/html"

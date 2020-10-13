@@ -1,18 +1,17 @@
-from zipfile import ZipFile
 import os
 from datetime import datetime
-from time import sleep
-from mcc.mcunit import McUnit
+from zipfile import ZipFile
+
+import click
+
+from mcc import __version__
 from mcc.config import Config
 
-mc_units = McUnit.discover_units()
 
-
-def show_state():
-    print("\nMinecraft Servers' State")
-    print(McUnit.heading)
-    for mc in mc_units:
-        print(mc)
+@click.command()
+def mcc():
+    """Main Entry Point"""
+    click.echo(f"version: {__version__}")
 
 
 def set_world(unit):
@@ -49,26 +48,3 @@ def backup_world(unit):
     else:
         print("cancelled")
 
-
-all_actions = McUnit.actions
-all_actions.update({"w": set_world, "b": backup_world})
-choose_server = Config.make_server_chooser(len(mc_units))
-choose_action = Config.make_action_chooser(all_actions)
-
-
-# main loop. Print status and request actions
-while True:
-    show_state()
-    server = choose_server.ask()
-    if not server:
-        break
-    action = choose_action.ask()
-    if action:
-        function = McUnit.actions[action]
-        if server == "a":
-            for unit in mc_units:
-                function(unit)
-        else:
-            function(mc_units[int(server)])
-    else:
-        print("No action")
