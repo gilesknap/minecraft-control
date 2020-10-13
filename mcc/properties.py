@@ -4,7 +4,7 @@ from pathlib import Path
 
 class Properties:
     """
-    A class to read/write from a properties file which but with no
+    A class to read/write from a properties file but with no
     section headers (i.e. Minecraft's server.properties)
     """
 

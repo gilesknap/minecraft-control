@@ -13,7 +13,7 @@ class McUnit:
     """
     A class to represent a Unit of the minecraft service.
     The factory function discover_units expects to find installations of
-    Minecraft Server in folders under /home/minecraft/MinecraftServers
+    Minecraft Server in folders under /home/{user}/MinecraftServers
     and returns a list of McUnit
     """
 
