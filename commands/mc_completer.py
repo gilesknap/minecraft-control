@@ -139,13 +139,7 @@ class ProcessWrapper:
         fr = open("tmpout", "r")
         os.chdir(str(self.cwd))
         try:
-            proc = Popen(
-                ["bash", "-c", "./start_server"],
-                stdin=PIPE,
-                stdout=fw,
-                stderr=fw,
-                bufsize=1,
-            )
+            proc = Popen(self.cmd_line, stdin=PIPE, stdout=fw, stderr=fw, bufsize=1,)
             out_thread = Thread(target=self.output_loop, args=(fr,))
             out_thread.start()
             self.input_loop(proc)
@@ -157,11 +151,13 @@ class ProcessWrapper:
 
 
 def main():
-
-    cmd = sys.argv[1:]
-    w = ProcessWrapper(cmd)
-    print(f"command starting: {cmd}")
-    w.start()
+    if len(sys.argv) < 2:
+        print("please supply a CLI application to launch")
+    else:
+        cmd = sys.argv[1:]
+        w = ProcessWrapper(cmd)
+        print(f"command starting: {cmd}")
+        w.start()
 
 
 if __name__ == "__main__":
