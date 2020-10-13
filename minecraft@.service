@@ -7,7 +7,7 @@ After=network.target
 [Service]
 WorkingDirectory=/home/minecraft/MinecraftServers/%i
 
-ExecStart=/bin/sh -c '/usr/bin/screen -DmS mc-%i ./start_server'
+ExecStart=/bin/sh -c '/usr/bin/screen -DmS mc-%i /home/minecraft/minecraft-control/commands/mc_completer.py ./start_server'
 
 ExecReload=/usr/bin/screen -p 0 -S mc-%i -X eval 'stuff "reload"\\015'
 

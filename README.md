@@ -20,6 +20,10 @@ Future functions
 
 - create new server
 - add new world to server
+- upgrade minecraft
+- improved CLI via click
+- consider client server split (maybe - or stick to ssh)
+- replace screen with an RCON client (maybe using https://pypi.org/project/mcipc/)
 
 Example interaction
 
