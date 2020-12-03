@@ -1,3 +1,4 @@
+from pathlib import Path
 import os
 from time import sleep
 from typing import List
@@ -51,13 +52,12 @@ class McUnit:
     def discover_units(cls) -> List["McUnit"]:
         # factory function that queries systemd files and returns a list
         # of McUints (1 systemd unit per Minecraft installation)
-        mc_installs = list(Config.mc_root.glob("*"))
-        mc_names = [
-            str(mc.name) for mc in mc_installs if not str(mc.name).startswith(".")
-        ]
-        units = []
 
-        for i, mc_name in enumerate(mc_names):
+        # find all directories off of root that contain server.properties
+        units = []
+        glob_path = str(Path("*") / "server.properties")
+        for i, props in enumerate(Config.mc_root.glob(glob_path)):
+            mc_name = str(props.parent.stem)
             unit_name = Config.unit_name_format.format(mc_name)
             unit = Unit(unit_name.encode("utf8"), bus=cls.dbus)
             unit.load()

@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, cast
 from zipfile import ZipFile
 
 import click
@@ -9,6 +9,7 @@ import click
 from mcc.config import Config
 from mcc.mcunit import McUnit
 
+download_page = "https://www.minecraft.net/en-us/download/server"
 
 @click.group(invoke_without_command=True)
 @click.option("--debug/--no-debug", default=False)
@@ -64,7 +65,8 @@ def server_command(
     def wrapper(server: Optional[int], **kwargs):
         if server is None:
             server = click.prompt(f"which server?\n{list()}", type=int)
-        mc_unit = validate_server_num(server)
+        server_num = cast(int, server)
+        mc_unit = validate_server_num(server_num)
         wrapped(mc_unit, **kwargs)
 
     return wrapper
