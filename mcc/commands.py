@@ -23,7 +23,7 @@ def mcc(ctx, debug: bool):
 
     if ctx.invoked_subcommand is None:
         click.echo("\nMinecraft Servers' State")
-        click.echo(list())
+        list()
 
 
 def list():
@@ -33,7 +33,7 @@ def list():
     result += f"{McUnit.heading}\n"
     for mc in mc_units:
         result += f"{repr(mc)}\n"
-    return result
+    click.echo(result)
 
 
 def list_worlds(mc_unit: McUnit):
@@ -82,7 +82,7 @@ def validate_server_num(server: int) -> McUnit:
     return unit
 
 
-def validate_world_num(unit: McUnit, world: int):
+def validate_world_num(unit: McUnit, world: Optional[int]):
     if world is None:
         world = click.prompt(f"which world?\n{list_worlds(unit)}", type=int)
 
@@ -97,9 +97,11 @@ def validate_world_num(unit: McUnit, world: int):
 
 @server_command
 def console(mc_unit: McUnit):
-    # mc_unit = validate_server_num(server)[server]
-    click.echo("to be implemented ...")
-
+    if not mc_unit.running:
+        click.echo(f"please start server {mc_unit.name}")
+        list()
+    else:
+        mc_unit.console()
 
 @server_command
 def stop(mc_unit: McUnit):
@@ -111,6 +113,13 @@ def stop(mc_unit: McUnit):
 @server_command
 def start(mc_unit: McUnit):
     click.echo(f"starting server {mc_unit.name} ...")
+    mc_unit.start()
+    list()
+
+@server_command
+def restart(mc_unit: McUnit):
+    click.echo(f"restarting server {mc_unit.name} ...")
+    mc_unit.stop()
     mc_unit.start()
     list()
 
