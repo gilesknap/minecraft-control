@@ -23,6 +23,7 @@ class McUnit:
         "No", "Name", "State", "SubSt", "Auto Start", "GameMode", "World", "Wlds"
     )
     config_name = "server.properties"
+    world_file = Path("*") / "level.dat"
 
     # keep a dbus and a manager for the lifetime of the class/app
     dbus = DBus(user_mode=True)
@@ -36,17 +37,15 @@ class McUnit:
         self.unit_name = unit_name
         self.num = num
         self.config_path = Config.mc_root / name / self.config_name
+        self.path = Config.mc_root / name
 
         self.properties = Properties(self.config_path)
         self.properties.read()
         self.world = self.properties["level-name"]
         self.mode = self.properties["gamemode"]
 
-        self.worlds = [
-            f.name
-            for f in (Config.mc_root / name).iterdir()
-            if f.name not in Config.non_worlds and f.is_dir()
-        ]
+        # find worlds by looking for all folders containing 'level.dat'
+        self.worlds = [f.parent.name for f in self.path.glob(str(self.world_file))]
 
     @classmethod
     def discover_units(cls) -> List["McUnit"]:
@@ -55,9 +54,9 @@ class McUnit:
 
         # find all directories off of root that contain server.properties
         units = []
-        glob_path = str(Path("*") / "server.properties")
+        glob_path = str(Path("*") / McUnit.config_name)
         for i, props in enumerate(Config.mc_root.glob(glob_path)):
-            mc_name = str(props.parent.stem)
+            mc_name = str(props.parent.name)
             unit_name = Config.unit_name_format.format(mc_name)
             unit = Unit(unit_name.encode("utf8"), bus=cls.dbus)
             unit.load()

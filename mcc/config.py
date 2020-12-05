@@ -9,4 +9,3 @@ class Config:
     mc_root = Path(f"/home/{user}/MinecraftServers")
     unit_name_format = "minecraft@{}.service"
     screen_cmd_format = "/usr/bin/screen -Dr mc-{}"
-    non_worlds = ["logs", "debug", "plugins", "crash-reports"]

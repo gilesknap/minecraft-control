@@ -151,11 +151,11 @@ def worlds(mc_unit: McUnit):
 @server_command
 def backup(mc_unit: McUnit, world: Optional[int]):
     world = validate_world_num(mc_unit, world)
-
-    click.echo(f"backing up server {mc_unit.name} ...")
-
     world_name = mc_unit.worlds[cast(int, world)]
-    d = datetime.today().strftime("%Y-%m-%d")
+
+    click.echo(f"backing up server {mc_unit.name}, world {world_name} ...")
+
+    d = datetime.today().strftime("%Y-%m-%d.%H-%M")
     fname = f"{d}.{mc_unit.name}.{world_name}.zip"
     dest = Config.backup_path / fname
     w_path = mc_unit.get_world_path(world)
