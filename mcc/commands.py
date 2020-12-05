@@ -11,6 +11,7 @@ from mcc.mcunit import McUnit
 
 download_page = "https://www.minecraft.net/en-us/download/server"
 
+
 @click.group(invoke_without_command=True)
 @click.option("--debug/--no-debug", default=False)
 @click.version_option()
@@ -95,7 +96,7 @@ def validate_world_num(unit: McUnit, world: Optional[int]):
     return world
 
 
-@server_command
+@server_command  # type: ignore
 def console(mc_unit: McUnit):
     if not mc_unit.running:
         click.echo(f"please start server {mc_unit.name}")
@@ -103,20 +104,22 @@ def console(mc_unit: McUnit):
     else:
         mc_unit.console()
 
-@server_command
+
+@server_command  # type: ignore
 def stop(mc_unit: McUnit):
     click.echo(f"stopping server {mc_unit.name} ...")
     mc_unit.stop()
     list()
 
 
-@server_command
+@server_command  # type: ignore
 def start(mc_unit: McUnit):
     click.echo(f"starting server {mc_unit.name} ...")
     mc_unit.start()
     list()
 
-@server_command
+
+@server_command  # type: ignore
 def restart(mc_unit: McUnit):
     click.echo(f"restarting server {mc_unit.name} ...")
     mc_unit.stop()
@@ -124,21 +127,21 @@ def restart(mc_unit: McUnit):
     list()
 
 
-@server_command
+@server_command  # type: ignore
 def disable(mc_unit: McUnit):
     click.echo(f"disabling server {mc_unit.name} ...")
     mc_unit.disable()
     list()
 
 
-@server_command
+@server_command  # type: ignore
 def enable(mc_unit: McUnit):
     click.echo(f"enabling server {mc_unit.name} ...")
     mc_unit.enable()
     list()
 
 
-@server_command
+@server_command  # type: ignore
 def worlds(mc_unit: McUnit):
     click.echo(f"Worlds for server {mc_unit.name}:")
     click.echo(list_worlds(mc_unit))
@@ -151,7 +154,7 @@ def backup(mc_unit: McUnit, world: Optional[int]):
 
     click.echo(f"backing up server {mc_unit.name} ...")
 
-    world_name = mc_unit.worlds[world]
+    world_name = mc_unit.worlds[cast(int, world)]
     d = datetime.today().strftime("%Y-%m-%d")
     fname = f"{d}.{mc_unit.name}.{world_name}.zip"
     dest = Config.backup_path / fname
@@ -171,6 +174,8 @@ def backup(mc_unit: McUnit, world: Optional[int]):
 def switch(mc_unit: McUnit, world: Optional[int]):
     world = validate_world_num(mc_unit, world)
 
-    click.echo(f"Switching server {mc_unit.name} to World {mc_unit.worlds[world]}")
+    click.echo(
+        f"Switching server {mc_unit.name} to World {mc_unit.worlds[cast(int, world)]}"
+    )
 
     mc_unit.set_world(world)
