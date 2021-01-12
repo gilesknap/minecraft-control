@@ -147,6 +147,17 @@ def worlds(mc_unit: McUnit):
     click.echo(list_worlds(mc_unit))
 
 
+@mcc.command()
+def ports():
+    mc_units = McUnit.discover_units()
+
+    result = f"{McUnit.ports_heading}\n"
+    for mc in mc_units:
+        result += f"{mc.render_ports()}\n"
+    click.echo(result)
+
+
+
 @click.argument("world", type=int, default=None, required=False)
 @server_command
 def backup(mc_unit: McUnit, world: Optional[int]):

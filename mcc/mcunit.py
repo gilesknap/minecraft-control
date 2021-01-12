@@ -22,6 +22,8 @@ class McUnit:
     heading = repr_format.format(
         "No", "Name", "State", "SubSt", "Auto Start", "GameMode", "World", "Wlds"
     )
+    ports_format = "{:3.2s}{:25.19s}{:10.9s}{:10.9s}"
+    ports_heading = ports_format.format("No", "Name", "server", "rcon")
     config_name = "server.properties"
     world_file = Path("*") / "level.dat"
 
@@ -43,6 +45,8 @@ class McUnit:
         self.properties.read()
         self.world = self.properties["level-name"]
         self.mode = self.properties["gamemode"]
+        self.port = self.properties["server-port"]
+        self.rcon = self.properties["rcon.port"]
 
         # find worlds by looking for all folders containing 'level.dat'
         self.worlds = [f.parent.name for f in self.path.glob(str(self.world_file))]
@@ -53,6 +57,7 @@ class McUnit:
         # of McUints (1 systemd unit per Minecraft installation)
 
         # find all directories off of root that contain server.properties
+        # these are minecraft server directories
         units = []
         glob_path = str(Path("*") / McUnit.config_name)
         for i, props in enumerate(Config.mc_root.glob(glob_path)):
@@ -77,6 +82,11 @@ class McUnit:
             self.mode,
             self.world,
             str(len(self.worlds)),
+        )
+
+    def render_ports(self):
+        return self.ports_format.format(
+            str(self.num), self.name, str(self.port), str(self.rcon)
         )
 
     def get_world_path(self, world_num):
