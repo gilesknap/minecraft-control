@@ -1,5 +1,9 @@
 # minecraft-control
 
+## Deprecated
+DEPRECATED: I have had much more success managing minecraft servers with kubernetes. See https://github.com/gilesknap/k3s-minecraft
+
+## Intro
 Some scripts for managing multiple Minecraft servers on a single machine
 
 Inspired by https://github.com/agowa338/MinecraftSystemdUnit/ configuration for running minecraft as a systemd service.
